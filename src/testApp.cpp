@@ -29,6 +29,8 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw(){
 
+
+
     ofBackground(255);
     ofSetColor(0);
     ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate(),2),20,20);
@@ -36,6 +38,8 @@ void testApp::draw(){
     ofPushMatrix();
     ofTranslate(ofGetWidth()/2, ofGetHeight()/2, 0); //camera style coordinates incase used later
     ofScale(1,-1,1);
+
+
 
         m_button.draw();
 
@@ -45,6 +49,7 @@ void testApp::draw(){
         ofLine(m_drawMouse.x - 10, m_drawMouse.y, m_drawMouse.x + 10, m_drawMouse.y);
         ofLine(m_drawMouse.x , m_drawMouse.y - 10, m_drawMouse.x , m_drawMouse.y + 10);
 
+        //ofCircle(m_worldMouse, 6);
 
     ofPopMatrix();
 

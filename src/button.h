@@ -25,6 +25,12 @@ class button
 
     private:
 
+    enum transType{
+        TR_ROT,
+        TR_TRANS,
+        TR_SIZE
+    };
+
     float m_timeAcc;
 
     ofPoint m_posGlobalO, m_posGlobalC;
@@ -34,12 +40,19 @@ class button
     int m_histSize;
     vector<ofPoint> m_hist;
 
+    transType m_transType;
+
     ofPoint m_pivot;
     float m_pivMin, m_pivMax, m_pivCenter;
+
+    ofVec2f m_transDir;
+    ofVec2f m_transPos, m_transNeg;
 
     ofPtr<ofxOscSender> p_sender;
 
     pathContainer m_pathContainer;
+
+
 
 };
 
