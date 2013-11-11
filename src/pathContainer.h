@@ -27,7 +27,12 @@ public:
     void rotateMan(float angle, ofVec2f pivot);
     void translateMan(ofVec2f b_pos);
     vector<ofVec2f> getIntersects(ofVec2f uv, ofVec2f p);
-    ofVec2f getLocal(ofVec2f world);
+
+    void translateAuto(ofVec2f t_vec, vector<ofVec2f> bounds);
+
+    ofVec2f localToWorldPoint(ofVec2f local);
+    float localToWorldRot(float local);
+    ofVec2f localToWorldVec(ofVec2f local);
 
     //still might not need these
     ofRectangle getBoundsO();

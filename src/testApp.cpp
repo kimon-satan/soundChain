@@ -44,11 +44,16 @@ void testApp::draw(){
         m_button.draw();
 
         //draw mouse pointer
-        m_button.getIsSelected() ? ofSetColor(255) : ofSetColor(0);
+        m_button.getIsPointInside() ? ofSetColor(255) : ofSetColor(0);
         ofNoFill();
-        ofLine(m_drawMouse.x - 10, m_drawMouse.y, m_drawMouse.x + 10, m_drawMouse.y);
-        ofLine(m_drawMouse.x , m_drawMouse.y - 10, m_drawMouse.x , m_drawMouse.y + 10);
+        //ofLine(m_drawMouse.x - 10, m_drawMouse.y, m_drawMouse.x + 10, m_drawMouse.y);
+        //ofLine(m_drawMouse.x , m_drawMouse.y - 10, m_drawMouse.x , m_drawMouse.y + 10);
 
+        ofLine(m_worldMouse.x - 10, m_worldMouse.y, m_worldMouse.x + 10, m_worldMouse.y);
+        ofLine(m_worldMouse.x , m_worldMouse.y - 10, m_worldMouse.x , m_worldMouse.y + 10);
+
+
+        //ofSetColor(0);
         //ofCircle(m_worldMouse, 6);
 
     ofPopMatrix();
@@ -81,14 +86,14 @@ void testApp::mouseDragged(int x, int y, int button){
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button){
 
-    m_button.press(m_worldMouse);
+   if(button == 0)m_button.press(m_worldMouse);
 
 }
 
 //--------------------------------------------------------------
 void testApp::mouseReleased(int x, int y, int button){
 
-    m_button.release();
+    if(button == 0)m_button.release();
 
 }
 

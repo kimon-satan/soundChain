@@ -43,26 +43,53 @@ void pathContainer::resizeC(int width, int height) {
 
 void pathContainer::rotateMan(float angle, ofVec2f pivot) {
 
-    m_rotC = m_rotO + angle;
-    m_posC = m_posO.getRotated(angle, pivot, ofVec3f(0,0,1));
+    m_rotC += angle;
+    m_posC = m_posC.getRotated(angle, pivot, ofVec3f(0,0,1));
 
 }
 
-void pathContainer::translateMan(ofVec2f v){
-    m_posC = m_posO + v;
+void pathContainer::translateMan(ofVec2f v){ m_posC += v;}
+
+void pathContainer::translateAuto(ofVec2f t_vec, vector<ofVec2f> bounds){
+
+    t_vec *= ofGetLastFrameTime(); //spped in pixels per second ...
+    ofVec2f p = m_posC;
+    p += t_vec;
+
+    bool isLimit = false;
+
+    if(t_vec.x < 0  && p.x < min(bounds[0].x, bounds[1].x)){isLimit = true;}
+    if(t_vec.x > 0 && p.x > max(bounds[0].x, bounds[1].x)){isLimit = true;}
+    if(t_vec.y < 0 && p.y < min(bounds[0].y, bounds[1].y)){isLimit = true;}
+    if(t_vec.y > 0 && p.y > max(bounds[0].y, bounds[1].y)){isLimit = true;}
+
+    if(!isLimit) m_posC.set(p);
+
+
 }
 
 vector<ofVec2f> pathContainer::getIntersects(ofVec2f uv, ofVec2f p){
     return pathUtils::getIntersects(m_polyA, uv, p);
 }
 
-ofVec2f pathContainer::getLocal(ofVec2f world){
+ofVec2f pathContainer::localToWorldPoint(ofVec2f local){
 
     ofVec2f p;
     ofRectangle r = m_polyC.getBoundingBox();
-    p.set(m_posC.x + r.width * world.x, m_posC.y + r.height * world.y);
+    p.set(m_posC.x + r.width * local.x, m_posC.y + r.height * local.y);
     p.rotate(m_rotC, m_posC);
     return p;
+}
+
+float pathContainer::localToWorldRot(float local){
+    float r = local + m_rotC;
+    while(r > 180)r -= 360;
+    while(r < -180)r += 360;
+    return r;
+}
+
+ofVec2f pathContainer::localToWorldVec(ofVec2f local){
+    return local.rotate(m_rotC);
 }
 
 void pathContainer::draw() {

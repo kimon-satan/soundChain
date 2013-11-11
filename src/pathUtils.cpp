@@ -39,24 +39,25 @@ vector<ofVec2f> getIntersects(ofPolyline & pl, ofVec2f uv, ofVec2f p) {
     vector<ofPoint> t_verts = pl.getVertices();
     vector<ofVec2f> intersects;
 
+    uv.normalize();
+   // uv.x = abs(uv.x); uv.y = abs(uv.y); // make unsigned
+
     float min_neg[2] = {-PI, -PI};
     float min_pos[2] = {PI, PI};
-    int negP[2], posP[2];
+    int negP[2] = {0,0};
+    int posP[2] = {0, 0};
 
     for(int j = 0; j < 2; j ++) {
 
         ofVec2f sv = (j == 0) ? uv : -uv;
-        //filter out verts on opposite side
+
         ofRectangle r;
 
-        if(uv.x == 0 ){
-            r = ofRectangle(ofVec2f(-ofGetWidth()/2, ofGetHeight()/2 * sv.y ), ofVec2f(ofGetWidth()/2, p.y));
-        }else if(uv.y == 0){
-            r = ofRectangle(ofVec2f(ofGetWidth()/2 * sv.x, -ofGetHeight()/2), ofVec2f(p.x,ofGetHeight()/2));
-        }else{
-            r = ofRectangle(p, p + sv * 2000);
-        }
+        ofVec2f s(sv/ofVec2f(abs(sv.x), abs(sv.y))); //just the signs
+        r.set(p - s * 5, ofPoint(ofGetWidth()/2, ofGetHeight()/2) * s);
 
+        if(sv.x == 0)r.set(ofPoint(- ofGetWidth()/2 , ofGetHeight()/2 * s.y) , ofPoint( ofGetWidth()/2, p.y));
+        if(sv.y == 0)r.set(ofPoint( ofGetWidth()/2 * s.x, - ofGetHeight()/2 ) , ofPoint( p.x, ofGetHeight()/2 ));
 
         for(int i = 0; i < t_verts.size(); i ++) {
 
@@ -64,6 +65,7 @@ vector<ofVec2f> getIntersects(ofPolyline & pl, ofVec2f uv, ofVec2f p) {
 
             ofVec2f v = (t_verts[i] - p).getNormalized();
             float f = v.angleRad(sv);
+
 
             if(f == 0) {
                 negP[j] = i;
