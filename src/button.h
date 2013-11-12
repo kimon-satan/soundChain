@@ -3,13 +3,13 @@
 
 #include "ofxOsc.h"
 #include "pathContainer.h"
+#include "allInputMappers.h"
 
 class button
 {
     public:
         button();
         virtual ~button();
-
 
         void update();
         void draw();
@@ -22,14 +22,19 @@ class button
         void handleOSC();
 
         void setOSCSender( ofPtr<ofxOscSender> o);
-        ofVec2f getModMouse();
+
+        ofVec2f getModMouse(); //not neeeded
+
         bool getIsSelected();
         bool getIsPointInside();
 
 
     private:
 
-    enum transType{
+    ofVec2f valToVec(float val, vector<ofVec2f> bnds, ofVec2f i_pos);
+    float valToRot(float val, float rng, float i_rot);
+
+    enum transType{ // this needs to be replaced
         SNDCHN_TT_ROT_MAN,
         SNDCHN_TT_TRANS_MAN,
         SNDCHN_TT_TRANS_AUTO,
@@ -40,25 +45,26 @@ class button
 
     float m_timeAcc;
 
-    ofPoint m_posGlobalO, m_posGlobalC;
+    ofPoint m_posO, m_posC;
+
     float m_radius;
     bool m_isSelected, m_isMoving, m_isSoundOn, m_isPointInside;
 
     int m_histSize;
     vector<ofPoint> m_hist;
 
-    transType m_transType;
+    transType m_transType; //this will go
 
     ofPoint m_pivot;
-    float m_pivMin, m_pivMax, m_pivCenter;
+    float m_pivRange, m_pivStart;
 
-    ofVec2f m_transDir;
-    ofVec2f m_transPos, m_transNeg;
+    vector<ofVec2f> m_transBounds; //range for button translations
 
-    vector<ofVec2f> m_transBounds;
     ofPtr<ofxOscSender> p_sender;
 
     pathContainer m_pathContainer;
+
+    shared_ptr <inputMapper> m_inputMapper;
 
 
 

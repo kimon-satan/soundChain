@@ -34,10 +34,20 @@ public:
     float localToWorldRot(float local);
     ofVec2f localToWorldVec(ofVec2f local);
 
+    void setBounds(ofVec2f pos, ofVec2f v, float prop);
+    void setBounds(ofVec2f pos, ofVec2f v, int bufPixels);
+
+    void setBoundsFromPath(vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, float prop);
+    void setBoundsFromPath(vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, int bufPixels);
+
+    vector<ofVec2f> getBounds();
+
     //still might not need these
-    ofRectangle getBoundsO();
+    ofRectangle getDims();
     ofPoint getPos();
     float getRot();
+
+
 
 private:
 
@@ -45,6 +55,8 @@ private:
 
     float m_rotC, m_rotO;
     ofPoint m_posC, m_posO;
+
+    vector<ofVec2f> m_bounds;
 
     int m_spacing;
     float m_corners;

@@ -9,6 +9,7 @@ pathContainer::pathContainer(){
     pathUtils::createRoundedRect(m_polyC, ofPoint(0,0,0), 200, 200, m_corners, m_spacing);
     updateO();
 
+
 }
 
 void pathContainer::updateO() {
@@ -43,30 +44,12 @@ void pathContainer::resizeC(int width, int height) {
 
 void pathContainer::rotateMan(float angle, ofVec2f pivot) {
 
-    m_rotC += angle;
-    m_posC = m_posC.getRotated(angle, pivot, ofVec3f(0,0,1));
+    m_rotC = m_rotO + angle;
+    m_posC = m_posO.getRotated(angle, pivot, ofVec3f(0,0,1));
 
 }
 
-void pathContainer::translateMan(ofVec2f v){ m_posC += v;}
-
-void pathContainer::translateAuto(ofVec2f t_vec, vector<ofVec2f> bounds){
-
-    t_vec *= ofGetLastFrameTime(); //spped in pixels per second ...
-    ofVec2f p = m_posC;
-    p += t_vec;
-
-    bool isLimit = false;
-
-    if(t_vec.x < 0  && p.x < min(bounds[0].x, bounds[1].x)){isLimit = true;}
-    if(t_vec.x > 0 && p.x > max(bounds[0].x, bounds[1].x)){isLimit = true;}
-    if(t_vec.y < 0 && p.y < min(bounds[0].y, bounds[1].y)){isLimit = true;}
-    if(t_vec.y > 0 && p.y > max(bounds[0].y, bounds[1].y)){isLimit = true;}
-
-    if(!isLimit) m_posC.set(p);
-
-
-}
+void pathContainer::translateMan(ofVec2f v){m_posC = m_posO + v;}
 
 vector<ofVec2f> pathContainer::getIntersects(ofVec2f uv, ofVec2f p){
     return pathUtils::getIntersects(m_polyA, uv, p);
@@ -94,7 +77,6 @@ ofVec2f pathContainer::localToWorldVec(ofVec2f local){
 
 void pathContainer::draw() {
 
-
     ofPushStyle();
     ofSetLineWidth(2);
     ofSetColor(0);
@@ -110,21 +92,58 @@ void pathContainer::draw() {
         }*/
 
         ofPopMatrix();
-
-
     ofPopStyle();
 
 }
 
 
+void pathContainer::setBounds(ofVec2f pos, ofVec2f v, float prop){
+    setBoundsFromPath(m_bounds, pos,v,prop);
+}
 
-ofRectangle pathContainer::getBoundsO(){
+void pathContainer::setBounds(ofVec2f pos, ofVec2f v, int bufPixels){
+    setBoundsFromPath(m_bounds, pos,v,bufPixels);
+}
+
+void pathContainer::setBoundsFromPath(vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, int bufPixels){
+
+    //might make more sense in path
+
+    bnds = getIntersects(v, pos);
+    ofVec2f t_vecs[2];
+
+    for(int i = 0 ; i < 2 ; i++){
+        t_vecs[i] = pos - bnds[i];
+        t_vecs[i] = t_vecs[i].getLimited(t_vecs[i].length() - bufPixels);
+        bnds[i] = pos + t_vecs[i];
+    }
+
+}
+
+void pathContainer::setBoundsFromPath(vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, float prop){
+
+    bnds = getIntersects(v, pos);
+    int bufPixels = ofVec2f(bnds[1] - bnds[0]).length() * (1 - prop) * 0.5;
+    ofVec2f t_vecs[2];
+
+    for(int i = 0 ; i < 2 ; i++){
+        t_vecs[i] = pos - bnds[i];
+        t_vecs[i] = t_vecs[i].getLimited(t_vecs[i].length() - bufPixels);
+        bnds[i] = pos + t_vecs[i];
+    }
+
+}
+
+
+ofRectangle pathContainer::getDims(){
     return m_polyO.getBoundingBox();
 }
 
 
 ofPoint pathContainer::getPos(){ return m_posC; }
 float pathContainer::getRot(){ return m_rotC; }
+
+vector<ofVec2f> pathContainer::getBounds(){ return m_bounds; }
 
 pathContainer::~pathContainer() {
     //dtor
