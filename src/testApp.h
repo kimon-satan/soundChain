@@ -24,7 +24,8 @@ class testApp : public ofBaseApp{
 
     private:
 
-        button m_button;
+        shared_ptr <button> m_button;
+        shared_ptr <pathContainer> m_pathContainer;
         ofVec2f m_worldMouse, m_drawMouse;
         ofPtr<ofxOscSender> m_sender;
 

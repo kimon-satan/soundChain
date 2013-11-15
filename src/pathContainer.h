@@ -2,6 +2,8 @@
 #define PATHCONTAINER_H
 
 #include "pathUtils.h"
+#include "utils.h"
+#include "transTypes.h"
 
 enum trDirection{
 
@@ -20,25 +22,24 @@ public:
 
     void draw();
 
+    void start(ofVec2f b_posO);
+    void update(float val);
     void updateO();
 
     void resizeC(int width, int height); //needs updating
 
-    void rotateMan(float angle, ofVec2f pivot);
-    void translateMan(ofVec2f b_pos);
+    void rotateFromO(float angle, ofVec2f pivot);
+    void translateFromO(ofVec2f b_pos);
     vector<ofVec2f> getIntersects(ofVec2f uv, ofVec2f p);
-
-    void translateAuto(ofVec2f t_vec, vector<ofVec2f> bounds);
 
     ofVec2f localToWorldPoint(ofVec2f local);
     float localToWorldRot(float local);
     ofVec2f localToWorldVec(ofVec2f local);
 
-    void setBounds(ofVec2f pos, ofVec2f v, float prop);
-    void setBounds(ofVec2f pos, ofVec2f v, int bufPixels);
+    float getStartVal();
 
-    void setBoundsFromPath(vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, float prop);
-    void setBoundsFromPath(vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, int bufPixels);
+    //void setBounds(ofVec2f pos, ofVec2f v, float prop);
+    //void setBounds(ofVec2f pos, ofVec2f v, int bufPixels);
 
     vector<ofVec2f> getBounds();
 
@@ -47,6 +48,7 @@ public:
     ofPoint getPos();
     float getRot();
 
+    void switchInput();
 
 
 private:
@@ -56,12 +58,16 @@ private:
     float m_rotC, m_rotO;
     ofPoint m_posC, m_posO;
 
+    ofPoint m_bPosO;
+
     vector<ofVec2f> m_bounds;
 
     int m_spacing;
     float m_corners;
 
+    shared_ptr <baseTData> m_tData;
 
+    int c_input;
 
 };
 

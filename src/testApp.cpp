@@ -13,7 +13,10 @@ void testApp::setup(){
     m.setAddress("/init");
     m_sender->sendMessage(m);
 
-    m_button.setOSCSender(m_sender);
+    m_pathContainer = shared_ptr<pathContainer>(new pathContainer());
+    m_button = shared_ptr<button>(new button(m_pathContainer));
+    m_button->setOSCSender(m_sender);
+
 
 }
 
@@ -21,15 +24,13 @@ void testApp::setup(){
 void testApp::update(){
 
     m_worldMouse.set(mouseX - ofGetWidth()/2, -(mouseY - ofGetHeight()/2));
-    m_button.update();
-    m_drawMouse = (m_button.getIsSelected()) ? m_button.getModMouse() : m_worldMouse;
+    m_button->update();
+    m_drawMouse = (m_button->getIsSelected()) ? m_button->getModMouse() : m_worldMouse;
 
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
-
-
 
     ofBackground(255);
     ofSetColor(0);
@@ -39,15 +40,14 @@ void testApp::draw(){
     ofTranslate(ofGetWidth()/2, ofGetHeight()/2, 0); //camera style coordinates incase used later
     ofScale(1,-1,1);
 
-
-
-        m_button.draw();
+        m_button->draw();
 
         //draw mouse pointer
-        m_button.getIsPointInside() ? ofSetColor(255) : ofSetColor(0);
+        m_button->getIsPointInside() ? ofSetColor(255) : ofSetColor(0);
         ofNoFill();
         //ofLine(m_drawMouse.x - 10, m_drawMouse.y, m_drawMouse.x + 10, m_drawMouse.y);
         //ofLine(m_drawMouse.x , m_drawMouse.y - 10, m_drawMouse.x , m_drawMouse.y + 10);
+
 
         ofLine(m_worldMouse.x - 10, m_worldMouse.y, m_worldMouse.x + 10, m_worldMouse.y);
         ofLine(m_worldMouse.x , m_worldMouse.y - 10, m_worldMouse.x , m_worldMouse.y + 10);
@@ -62,6 +62,10 @@ void testApp::draw(){
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
+
+    m_pathContainer->switchInput();
+    m_button->switchInput();
+
 
 }
 
@@ -78,7 +82,7 @@ void testApp::mouseMoved(int x, int y ){
 //--------------------------------------------------------------
 void testApp::mouseDragged(int x, int y, int button){
 
-    m_button.drag(m_worldMouse);
+    m_button->drag(m_worldMouse);
 
 }
 
@@ -86,14 +90,14 @@ void testApp::mouseDragged(int x, int y, int button){
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button){
 
-   if(button == 0)m_button.press(m_worldMouse);
+   if(button == 0)m_button->press(m_worldMouse);
 
 }
 
 //--------------------------------------------------------------
 void testApp::mouseReleased(int x, int y, int button){
 
-    if(button == 0)m_button.release();
+    if(button == 0)m_button->release();
 
 }
 

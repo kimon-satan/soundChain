@@ -54,8 +54,8 @@ void holdInput::update(ofVec2f t_mouse){
 void holdInput::stop(){
     m_isActive = false;
 }
-
 void holdInput::setIsAscending(bool b){
+
     m_isAscending = b;
 }
 

@@ -40,12 +40,11 @@ vector<ofVec2f> getIntersects(ofPolyline & pl, ofVec2f uv, ofVec2f p) {
     vector<ofVec2f> intersects;
 
     uv.normalize();
-   // uv.x = abs(uv.x); uv.y = abs(uv.y); // make unsigned
 
-    float min_neg[2] = {-PI, -PI};
+    float min_neg[2] = {-2 * PI, -2 * PI};
     float min_pos[2] = {PI, PI};
-    int negP[2] = {0,0};
-    int posP[2] = {0, 0};
+    int negP[2] = {-1,-1};
+    int posP[2] = {-1,-1};
 
     for(int j = 0; j < 2; j ++) {
 
@@ -54,10 +53,11 @@ vector<ofVec2f> getIntersects(ofPolyline & pl, ofVec2f uv, ofVec2f p) {
         ofRectangle r;
 
         ofVec2f s(sv/ofVec2f(abs(sv.x), abs(sv.y))); //just the signs
+
         r.set(p - s * 5, ofPoint(ofGetWidth()/2, ofGetHeight()/2) * s);
 
-        if(sv.x == 0)r.set(ofPoint(- ofGetWidth()/2 , ofGetHeight()/2 * s.y) , ofPoint( ofGetWidth()/2, p.y));
-        if(sv.y == 0)r.set(ofPoint( ofGetWidth()/2 * s.x, - ofGetHeight()/2 ) , ofPoint( p.x, ofGetHeight()/2 ));
+        if(uv.x == 0)r.set(ofPoint(- ofGetWidth()/2 , ofGetHeight()/2 * s.y) , ofPoint( ofGetWidth()/2, p.y));
+        if(uv.y == 0)r.set(ofPoint( ofGetWidth()/2 * s.x, - ofGetHeight()/2 ) , ofPoint( p.x, ofGetHeight()/2 ));
 
         for(int i = 0; i < t_verts.size(); i ++) {
 
@@ -84,11 +84,12 @@ vector<ofVec2f> getIntersects(ofPolyline & pl, ofVec2f uv, ofVec2f p) {
 
         }
 
+
         if(posP[j] == negP[j]) {
             intersects.push_back(t_verts[negP[j]]);
         } else {
-            float a = (float)(posP[j] + negP[j])/2.0f;
-            intersects.push_back(pl.getPointAtIndexInterpolated(a));
+            ofVec2f ip = (t_verts[posP[j]] + t_verts[negP[j]])/2.0f; //not very accurate ... don't be lazy find the intersect
+            intersects.push_back(ip);
         }
 
 
@@ -98,6 +99,38 @@ vector<ofVec2f> getIntersects(ofPolyline & pl, ofVec2f uv, ofVec2f p) {
     return intersects;
 
 }
+
+
+void setBoundsFromPath(ofPolyline & tPoly, vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, int bufPixels){
+
+
+    bnds = getIntersects(tPoly, v, pos);
+
+    ofVec2f t_vecs[2];
+
+    for(int i = 0 ; i < 2 ; i++){
+        t_vecs[i] = pos - bnds[i];
+        t_vecs[i] = t_vecs[i].getLimited(t_vecs[i].length() - bufPixels);
+        bnds[i] = pos + t_vecs[i];
+    }
+
+}
+
+void setBoundsFromPath(ofPolyline & tPoly, vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, float prop){
+
+    bnds = getIntersects(tPoly, v, pos);
+    int bufPixels = ofVec2f(bnds[1] - bnds[0]).length() * (1 - prop) * 0.5;
+    ofVec2f t_vecs[2];
+
+    for(int i = 0 ; i < 2 ; i++){
+        t_vecs[i] = pos - bnds[i];
+        t_vecs[i] = t_vecs[i].getLimited(t_vecs[i].length() - bufPixels);
+        bnds[i] = pos + t_vecs[i];
+    }
+
+}
+
+
 
 
 

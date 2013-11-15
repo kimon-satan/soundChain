@@ -8,7 +8,7 @@
 class button
 {
     public:
-        button();
+        button(shared_ptr<pathContainer> p);
         virtual ~button();
 
         void update();
@@ -19,8 +19,8 @@ class button
         void release();
 
         void calcIsMoving();
-        void handleOSC();
 
+        void handleOSC();
         void setOSCSender( ofPtr<ofxOscSender> o);
 
         ofVec2f getModMouse(); //not neeeded
@@ -28,22 +28,15 @@ class button
         bool getIsSelected();
         bool getIsPointInside();
 
+        void setPathContainer(shared_ptr<pathContainer> p);
+
+        void switchInput(); // temporary method
+
 
     private:
 
-    ofVec2f valToVec(float val, vector<ofVec2f> bnds, ofVec2f i_pos);
-    float valToRot(float val, float rng, float i_rot);
-
-    enum transType{ // this needs to be replaced
-        SNDCHN_TT_ROT_MAN,
-        SNDCHN_TT_TRANS_MAN,
-        SNDCHN_TT_TRANS_AUTO,
-        SNDCHN_TT_SIZE_MAN,
-        SNDCHN_TT_ROT_AUTO,
-        SNDCHN_TT_SIZE_AUTO
-    };
-
     float m_timeAcc;
+    int c_input;
 
     ofPoint m_posO, m_posC;
 
@@ -53,17 +46,10 @@ class button
     int m_histSize;
     vector<ofPoint> m_hist;
 
-    transType m_transType; //this will go
-
-    ofPoint m_pivot;
-    float m_pivRange, m_pivStart;
-
-    vector<ofVec2f> m_transBounds; //range for button translations
-
     ofPtr<ofxOscSender> p_sender;
 
-    pathContainer m_pathContainer;
-
+    shared_ptr <pathContainer> m_pathContainer;
+    shared_ptr <baseTData> m_tData;
     shared_ptr <inputMapper> m_inputMapper;
 
 
