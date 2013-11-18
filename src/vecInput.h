@@ -11,7 +11,7 @@ class vecInput : public inputMapper
         virtual ~vecInput();
 
         void start();
-        void start(float s_val);
+        void setStartVal(float s_val);
         void update(ofVec2f t_mouse);
         void stop();
 

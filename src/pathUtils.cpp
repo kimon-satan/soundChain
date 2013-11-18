@@ -101,7 +101,7 @@ vector<ofVec2f> getIntersects(ofPolyline & pl, ofVec2f uv, ofVec2f p) {
 }
 
 
-void setBoundsFromPath(ofPolyline & tPoly, vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, int bufPixels){
+void setBoundsFromPath(ofPolyline & tPoly, vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, int bufPixels, bool isInverted){
 
 
     bnds = getIntersects(tPoly, v, pos);
@@ -109,21 +109,21 @@ void setBoundsFromPath(ofPolyline & tPoly, vector<ofVec2f> & bnds, ofVec2f pos, 
     ofVec2f t_vecs[2];
 
     for(int i = 0 ; i < 2 ; i++){
-        t_vecs[i] = pos - bnds[i];
+        t_vecs[i] =  isInverted ? pos - bnds[i] : bnds[i] - pos;
         t_vecs[i] = t_vecs[i].getLimited(t_vecs[i].length() - bufPixels);
         bnds[i] = pos + t_vecs[i];
     }
 
 }
 
-void setBoundsFromPath(ofPolyline & tPoly, vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, float prop){
+void setBoundsFromPath(ofPolyline & tPoly, vector<ofVec2f> & bnds, ofVec2f pos, ofVec2f v, float prop, bool isInverted){
 
     bnds = getIntersects(tPoly, v, pos);
     int bufPixels = ofVec2f(bnds[1] - bnds[0]).length() * (1 - prop) * 0.5;
     ofVec2f t_vecs[2];
 
     for(int i = 0 ; i < 2 ; i++){
-        t_vecs[i] = pos - bnds[i];
+        t_vecs[i] =  isInverted ? pos - bnds[i] : bnds[i] - pos;
         t_vecs[i] = t_vecs[i].getLimited(t_vecs[i].length() - bufPixels);
         bnds[i] = pos + t_vecs[i];
     }

@@ -22,11 +22,16 @@ class testApp : public ofBaseApp{
 
         void exit();
 
+        void modifyButton();
+        void modifyPath();
+
     private:
 
         shared_ptr <button> m_button;
         shared_ptr <pathContainer> m_pathContainer;
         ofVec2f m_worldMouse, m_drawMouse;
         ofPtr<ofxOscSender> m_sender;
+
+        int butType, pathType;
 
 };

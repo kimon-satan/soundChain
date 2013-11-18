@@ -9,68 +9,18 @@ pathContainer::pathContainer(){
     pathUtils::createRoundedRect(m_polyC, ofPoint(0,0,0), 200, 200, m_corners, m_spacing);
     updateO();
 
-    m_tData = shared_ptr<baseTData>(new transTData());
-
-    shared_ptr<transTData> t_trans(static_pointer_cast <transTData>(m_tData));
-    t_trans->dirLocal.set(0,1);
-    t_trans->isBoundsFromPath = true;
-    t_trans->isPixelBuf = true;
-    t_trans->pixelBuf = 35;
-
-    c_input = 0;
-
 }
 
-void pathContainer::switchInput(){
 
-    c_input = (c_input + 1)%3;
-
-    if(c_input == 0){
-
-        m_tData = shared_ptr<baseTData>(new transTData());
-
-        shared_ptr<transTData> t_trans(static_pointer_cast <transTData>(m_tData));
-        t_trans->dirLocal.set(0,1);
-        t_trans->isBoundsFromPath = true;
-        t_trans->isBoundsFromButton = true;
-        t_trans->isLocal = false;
-        t_trans->isPixelBuf = true;
-        t_trans->pixelBuf = 35;
-
-    }
-
-    if(c_input == 1){
-
-        m_tData = shared_ptr<baseTData>(new transTData());
-
-        shared_ptr<transTData> t_trans(static_pointer_cast <transTData>(m_tData));
-        t_trans->dirLocal.set(0,1);
-        t_trans->isBoundsFromPath = false;
-        t_trans->isLocal = true;
-
-    }
-
-    if(c_input == 2){
-
-        m_tData = shared_ptr<baseTData>(new pivotTData());
-
-    }
-
-
-}
-
-void pathContainer::start(ofVec2f b_posO){
+void pathContainer::start(ofVec2f b_posO, float s_val){
 
     m_bPosO.set(b_posO);
 
     if(m_tData->type == "pivot"){
+
         shared_ptr<pivotTData> t_piv(static_pointer_cast <pivotTData>(m_tData));
 
-        //temporary-----------------------
-        t_piv->range = 180;
-        t_piv->start = 0.5;
-        t_piv->pivotLocal.set(ofVec2f(-0.35, 0.35));  //local position
-        //----------------------
+        t_piv->start = s_val;
 
         if(t_piv->isLocal)
                 t_piv->pivotGlobal.set(localToWorldPoint(t_piv->pivotLocal));
@@ -90,37 +40,27 @@ void pathContainer::start(ofVec2f b_posO){
 
         if(t_trans->isBoundsFromPath){
 
-            if(t_trans->isBoundsFromButton){
-
-                if(t_trans->isPixelBuf){
-                    pathUtils::setBoundsFromPath(m_polyA, t_trans->bounds ,m_bPosO, t_trans->dirGlobal, t_trans->pixelBuf);
-                }else{
-                    pathUtils::setBoundsFromPath(m_polyA, t_trans->bounds ,m_bPosO, t_trans->dirGlobal, t_trans->prop);
-                }
-
-                //needs a tag
-                ofVec2f v = t_trans->dirGlobal.getNormalized();
-                for(int  i =0; i < 2; i++)t_trans->bounds[i] += ofVec2f(m_posO - b_posO);
-
-
+            if(t_trans->isPixelBuf){
+                pathUtils::setBoundsFromPath(m_polyA, t_trans->bounds ,m_bPosO, t_trans->dirGlobal, t_trans->pixelBuf, true);
             }else{
-                if(t_trans->isPixelBuf){
-                    pathUtils::setBoundsFromPath(m_polyA, t_trans->bounds ,m_posO, t_trans->dirGlobal, t_trans->pixelBuf);
-                }else{
-                    pathUtils::setBoundsFromPath(m_polyA, t_trans->bounds ,m_posO, t_trans->dirGlobal, t_trans->prop);
-                }
-
+                pathUtils::setBoundsFromPath(m_polyA, t_trans->bounds ,m_bPosO, t_trans->dirGlobal, t_trans->prop, true);
             }
 
-
+            ofVec2f v = t_trans->dirGlobal.getNormalized();
+            for(int  i =0; i < 2; i++)t_trans->bounds[i] += ofVec2f(m_posO - b_posO);
+            t_trans->start = ofVec2f(m_posO - t_trans->bounds[0]).length()/ofVec2f(t_trans->bounds[1] - t_trans->bounds[0]).length();
 
         }else{
 
+            //this won't always work here because hold is the other way round ?
+            t_trans->start = s_val;
             t_trans->bounds.clear();
-            t_trans->bounds.push_back(m_posO - t_trans->dirGlobal * 100);
-            t_trans->bounds.push_back(m_posO + t_trans->dirGlobal * 100);
+            t_trans->bounds.push_back(m_posO - t_trans->dirGlobal * t_trans->range * t_trans->start);
+            t_trans->bounds.push_back(m_posO + t_trans->dirGlobal * t_trans->range * (1 - t_trans->start));
 
         }
+
+
 
     }
 
@@ -227,39 +167,17 @@ void pathContainer::draw() {
         ofPopMatrix();
     ofPopStyle();
 
-    if(m_tData->type == "translate"){
+    /*if(m_tData->type == "translate"){
         shared_ptr<transTData> t_trans(static_pointer_cast <transTData>(m_tData));
         if(t_trans->bounds.size() > 0){
             ofCircle(t_trans->bounds[0],5);
             ofCircle(t_trans->bounds[1],5);
         }
-    }
+    }*/
 
 }
 
-float pathContainer::getStartVal(){
-
-    float sv = 0;
-
-    if(m_tData->type == "translate"){
-
-      shared_ptr<transTData> t_trans(static_pointer_cast <transTData>(m_tData));
-      sv = ofVec2f(m_posO - t_trans->bounds[0]).length()/ofVec2f(t_trans->bounds[1] - t_trans->bounds[0]).length();
-
-    }
-
-    return sv;
-
-}
-
-/*void pathContainer::setBounds(ofVec2f pos, ofVec2f v, float prop){
-    pathUtils::setBoundsFromPath(m_polyA, m_bounds, pos, v, prop);
-}
-
-void pathContainer::setBounds(ofVec2f pos, ofVec2f v, int bufPixels){
-    pathUtils::setBoundsFromPath(m_polyA, m_bounds, pos,v,bufPixels);
-}*/
-
+float pathContainer::getStartVal(){return m_tData->start;}
 
 ofRectangle pathContainer::getDims(){
     return m_polyO.getBoundingBox();
@@ -269,7 +187,12 @@ ofRectangle pathContainer::getDims(){
 ofPoint pathContainer::getPos(){ return m_posC; }
 float pathContainer::getRot(){ return m_rotC; }
 
-vector<ofVec2f> pathContainer::getBounds(){ return m_bounds; }
+
+void pathContainer::setTransform(shared_ptr <baseTData> b){
+    m_tData = b;
+}
+
+ofPolyline pathContainer::getPolyA(){return m_polyA;}
 
 pathContainer::~pathContainer() {
     //dtor

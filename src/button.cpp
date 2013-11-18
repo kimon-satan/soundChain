@@ -9,7 +9,7 @@ button::button(shared_ptr<pathContainer> p) {
     m_isSelected = false;
     m_isPointInside = false;
     m_radius = 15;
-    m_posO.set(r.width * 0.35,-r.height * 0, 0);
+    m_posO.set(r.width * 0.35,-r.height * 0.35, 0);
     m_posC.set(m_posO);
 
     m_histSize = 10;
@@ -17,41 +17,11 @@ button::button(shared_ptr<pathContainer> p) {
     m_isSoundOn = false;
     m_isMoving = false;
 
-    m_tData.reset(); //= shared_ptr<baseTData>(new transTData());
-    m_inputMapper = shared_ptr<inputMapper>(new holdInput());
 
-    c_input = 0;
+
 
 }
 
-void button::switchInput(){
-
-    c_input = (c_input + 1)%3;
-
-    if(c_input == 0){
-
-        m_tData.reset(); //= shared_ptr<baseTData>(new transTData());
-        m_inputMapper = shared_ptr<inputMapper>(new holdInput());
-
-    }
-
-    if(c_input == 1){
-
-        m_tData = shared_ptr<baseTData>(new transTData());
-        m_inputMapper = shared_ptr<inputMapper>(new vecInput());
-
-
-    }
-
-    if(c_input == 2){
-
-        m_tData = shared_ptr<baseTData>(new pivotTData());
-        m_inputMapper = shared_ptr<inputMapper>(new arcInput());
-
-    }
-
-
-}
 
 void button::update() {
 
@@ -68,7 +38,7 @@ void button::update() {
 
     if(m_isSelected) {
 
-        if(!m_inputMapper->getIsUserInput()){
+        if(!m_inputMapper->getIsUserInput()) {
             m_inputMapper->update(ofVec2f(0,0));
             m_pathContainer->update(m_inputMapper->getVal());
         }
@@ -91,13 +61,23 @@ void button::draw() {
 
     //debug drawing
 
-    //ofCircle(m_pivot,5);
-    /*if(m_transBounds.size() > 0){
-        ofCircle(m_transBounds[0], 5);
-        ofCircle(m_transBounds[1], 10);
+    if(m_tData){
+
+        if(m_tData->type == "pivot") {
+            shared_ptr<pivotTData> t_piv(static_pointer_cast<pivotTData>(m_tData));
+            ofCircle(t_piv->pivotGlobal, 5);
+            ofLine(t_piv->pivotGlobal , m_posC);
+        }
+
+         if(m_tData->type == "translate") {
+            shared_ptr<transTData> t_trans(static_pointer_cast<transTData>(m_tData));
+            for(int i = 0; i < 2; i++)ofCircle(t_trans->bounds[i], 5);
+
+        }
+
     }
 
-
+    /*
     ofPushStyle();
     ofSetRectMode(OF_RECTMODE_CENTER);
     ofRect(m_pathContainer->getPos(), 6,6);
@@ -106,80 +86,17 @@ void button::draw() {
 
 }
 
+
+
 //mouse interaction
 
 void button::press(ofVec2f t_mouse) {
 
+
     //mouse coordinates already translated in testApp
     m_isPointInside = t_mouse.distance(m_posC) <= m_radius;
     m_isSelected = m_isPointInside;
-
-    if(m_isSelected) {
-
-        m_pathContainer->start(m_posO);
-
-        //needs an if statement for input types here
-        if(m_inputMapper->getType() == "arcInput"){
-
-            shared_ptr<pivotTData> t_piv(static_pointer_cast <pivotTData>(m_tData));
-
-            t_piv->range = 180;
-            t_piv->start = 0.5;
-            t_piv->pivotLocal.set(ofVec2f(-0.35, 0.35));  //local position
-
-            if(t_piv->isLocal)
-                t_piv->pivotGlobal.set(m_pathContainer->localToWorldPoint(t_piv->pivotLocal));
-            else
-                t_piv->pivotGlobal.set(t_piv->pivotLocal);
-
-            shared_ptr<arcInput> t_arc(static_pointer_cast <arcInput>(m_inputMapper)); //downcast it
-
-            t_arc->setPosO(m_posC);
-
-            t_arc->setRangeDegrees(t_piv->range); //could set via data structure
-            t_arc->setPivot(t_piv->pivotGlobal);
-            t_arc->start(t_piv->start);
-
-
-
-        }
-
-        if(m_inputMapper->getType() == "vecInput"){
-
-            shared_ptr<transTData> t_trans(static_pointer_cast <transTData>(m_tData));
-
-            t_trans->dirLocal.set(0,1);
-            t_trans->isLocal = true;
-
-            if(t_trans->isLocal)
-                t_trans->dirGlobal.set(m_pathContainer->localToWorldVec(t_trans->dirLocal));
-            else
-                t_trans->dirGlobal.set(t_trans->dirLocal);
-
-            t_trans->bounds.clear();
-            t_trans->bounds.push_back(m_posO - t_trans->dirGlobal * 100);
-            t_trans->bounds.push_back(m_posO + t_trans->dirGlobal * 100);
-
-            shared_ptr<vecInput> t_vec(static_pointer_cast <vecInput>(m_inputMapper)); //downcast it
-            t_vec->setBounds(t_trans->bounds[0], t_trans->bounds[1]);
-            t_vec->setPosO(m_posC);
-            t_vec->start();
-
-        }
-
-        if(m_inputMapper->getType() == "holdInput"){
-
-            shared_ptr<holdInput> t_hold(static_pointer_cast <holdInput>(m_inputMapper)); //downcast it
-            t_hold->setTime(5.0);
-            t_hold->setIsPingPong(true);
-
-            t_hold->start(m_pathContainer->getStartVal());
-
-        }
-
-    }
-
-
+    if(m_isSelected)m_inputMapper->start();
 
 
 }
@@ -191,13 +108,13 @@ void button::drag(ofVec2f t_mouse) {
 
     if(!m_isSelected)return;
 
-    if(m_inputMapper->getIsUserInput()){
+    if(m_inputMapper->getIsUserInput()) {
         m_inputMapper->update(t_mouse);
         m_pathContainer->update(m_inputMapper->getVal());
     }
 
 
-    if(m_inputMapper->getType() == "arcInput"){
+    if(m_inputMapper->getType() == "arcInput") {
 
         shared_ptr<pivotTData> t_piv(static_pointer_cast <pivotTData>(m_tData));
         float ang = utils::valToRot(m_inputMapper->getVal(), t_piv->range, t_piv->start);
@@ -205,7 +122,7 @@ void button::drag(ofVec2f t_mouse) {
 
     }
 
-    if(m_inputMapper->getType() == "vecInput"){
+    if(m_inputMapper->getType() == "vecInput") {
 
         shared_ptr<transTData> t_trans(static_pointer_cast <transTData>(m_tData));
         m_posC = m_posO + utils::valToVec(m_inputMapper->getVal(), t_trans->bounds, m_posO);
@@ -219,23 +136,97 @@ void button::drag(ofVec2f t_mouse) {
 
 void button::release() {
 
-    if(m_isSelected) {
-        m_inputMapper->stop();
-        m_posO = m_posC; // store last position b4 next transform
-        m_pathContainer->updateO();
-    }
-
     m_isSelected = false;
     m_isPointInside = false;
+
+   // deactivate input mapper
+   m_inputMapper->stop();
 
 }
 
 //helper functions
 
+void button::reset() {
+
+    m_posO = m_posC; // store last position b4 next transform
+    m_pathContainer->updateO(); //likewise for the path
+
+    //needs an if statement for input types here
+    if(m_inputMapper->getType() == "arcInput") {
+
+        shared_ptr<pivotTData> t_piv(static_pointer_cast<pivotTData>(m_tData));
+
+        if(t_piv->isLocal)
+            t_piv->pivotGlobal.set(m_pathContainer->localToWorldPoint(t_piv->pivotLocal));
+        else
+            t_piv->pivotGlobal.set(t_piv->pivotLocal);
+
+        shared_ptr<arcInput> t_arc(static_pointer_cast <arcInput>(m_inputMapper)); //downcast it
+
+        t_arc->setPosO(m_posO);
+
+        t_arc->setRangeDegrees(t_piv->range); //could set via data structure
+        t_arc->setPivot(t_piv->pivotGlobal);
+        t_arc->setStartVal(t_piv->start);
+
+        //control needs to own start_val
+        m_pathContainer->start(m_posO, t_piv->start);
+
+    }
+
+    if(m_inputMapper->getType() == "vecInput") {
+
+        shared_ptr<transTData> t_trans(static_pointer_cast <transTData>(m_tData));
+
+        if(t_trans->isLocal)
+            t_trans->dirGlobal.set(m_pathContainer->localToWorldVec(t_trans->dirLocal));
+        else
+            t_trans->dirGlobal.set(t_trans->dirLocal);
+
+        if(t_trans->isBoundsFromPath){
+
+            ofPolyline tp = m_pathContainer->getPolyA();
+
+            if(t_trans->isPixelBuf){
+                pathUtils::setBoundsFromPath(tp, t_trans->bounds ,m_posO, t_trans->dirGlobal, t_trans->pixelBuf);
+            }else{
+                pathUtils::setBoundsFromPath(tp, t_trans->bounds ,m_posO, t_trans->dirGlobal, t_trans->prop);
+            }
+
+            t_trans->start = ofVec2f(m_posO - t_trans->bounds[0]).length()/ofVec2f(t_trans->bounds[1] - t_trans->bounds[0]).length();
+            m_pathContainer->start(m_posO, t_trans->start);
+
+        }else{
+
+            t_trans->bounds.clear();
+            t_trans->bounds.push_back(m_posO - t_trans->dirGlobal * t_trans->range * t_trans->start);
+            t_trans->bounds.push_back(m_posO + t_trans->dirGlobal * t_trans->range * (1 - t_trans->start));
+            m_pathContainer->start(m_posO, t_trans->start);
+
+        }
+
+        shared_ptr<vecInput> t_vec(static_pointer_cast <vecInput>(m_inputMapper)); //downcast it
+        t_vec->setBounds(t_trans->bounds[0], t_trans->bounds[1]);
+        t_vec->setPosO(m_posC);
+
+    }
+
+    if(m_inputMapper->getType() == "holdInput") {
+
+        m_pathContainer->start(m_posO); //not sure this should be here either
+        shared_ptr<holdInput> t_hold(static_pointer_cast <holdInput>(m_inputMapper)); //downcast it
+        t_hold->setTime(5.0);
+        t_hold->setIsPingPong(true);
+        t_hold->setStartVal(m_pathContainer->getStartVal()); // path container has start val put this somewhere else
+
+    }
+
+}
 
 
 
-void button::calcIsMoving(){
+
+void button::calcIsMoving() {
 
     m_hist.push_back(ofVec2f(m_posC.x, m_posC.y));
 
@@ -249,44 +240,44 @@ void button::calcIsMoving(){
 
 }
 
-void button::handleOSC(){
+void button::handleOSC() {
 
     //send on moving mode ... other modes to follow
 
     ofxOscMessage m;
 
-   /* if(m_transType < 3){
+    /* if(m_transType < 3){
 
-        if(m_isMoving && ! m_isSoundOn) {
-            m.setAddress("/startS");
-            p_sender->sendMessage(m);
-            m_isSoundOn = true;
-        } else if(!m_isMoving && m_isSoundOn) {
-            m.setAddress("/stopS");
-            p_sender->sendMessage(m);
-            m_isSoundOn = false;
-        } else if(m_isSoundOn) {
-            m.setAddress("/updateS"); //TODO add params here
-            p_sender->sendMessage(m);
-        }
+         if(m_isMoving && ! m_isSoundOn) {
+             m.setAddress("/startS");
+             p_sender->sendMessage(m);
+             m_isSoundOn = true;
+         } else if(!m_isMoving && m_isSoundOn) {
+             m.setAddress("/stopS");
+             p_sender->sendMessage(m);
+             m_isSoundOn = false;
+         } else if(m_isSoundOn) {
+             m.setAddress("/updateS"); //TODO add params here
+             p_sender->sendMessage(m);
+         }
 
-    }else{
+     }else{
 
-        if(m_isSelected && ! m_isSoundOn) {
-            m.setAddress("/startS");
-            p_sender->sendMessage(m);
-            m_isSoundOn = true;
-        } else if(!m_isSelected && m_isSoundOn) {
-            m.setAddress("/stopS");
-            p_sender->sendMessage(m);
-            m_isSoundOn = false;
-        } else if(m_isSoundOn) {
-            m.setAddress("/updateS"); //TODO add params here
-            p_sender->sendMessage(m);
-        }
+         if(m_isSelected && ! m_isSoundOn) {
+             m.setAddress("/startS");
+             p_sender->sendMessage(m);
+             m_isSoundOn = true;
+         } else if(!m_isSelected && m_isSoundOn) {
+             m.setAddress("/stopS");
+             p_sender->sendMessage(m);
+             m_isSoundOn = false;
+         } else if(m_isSoundOn) {
+             m.setAddress("/updateS"); //TODO add params here
+             p_sender->sendMessage(m);
+         }
 
 
-    } */
+     } */
 
 
 }
@@ -308,6 +299,15 @@ void button::setOSCSender( ofPtr<ofxOscSender> o) {
     p_sender = o;
 }
 
+void button::setInput(shared_ptr <inputMapper> p ) {
+    m_inputMapper = p;
+}
+
+void button::setTransform(shared_ptr <baseTData> b) {
+    m_tData = b;
+}
+
+ofVec2f button::getPos(){return m_posC;}
 
 button::~button() {
     //dtor

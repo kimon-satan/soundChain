@@ -11,7 +11,7 @@ class holdInput : public inputMapper
         virtual ~holdInput();
 
         void start(); //without reset
-        void start(float s_val);
+        void setStartVal(float s_val);
         void update(ofVec2f t_mouse = ofVec2f(0,0));
         void stop();
 

@@ -18,6 +18,8 @@ class button
         void drag(ofVec2f t_mouse);
         void release();
 
+        void reset();
+
         void calcIsMoving();
 
         void handleOSC();
@@ -30,13 +32,17 @@ class button
 
         void setPathContainer(shared_ptr<pathContainer> p);
 
-        void switchInput(); // temporary method
+        void setInput(shared_ptr <inputMapper> p);
+        void setTransform(shared_ptr <baseTData> b);
+
+        void reconcileStartVals();
+
+        ofVec2f getPos();
 
 
     private:
 
     float m_timeAcc;
-    int c_input;
 
     ofPoint m_posO, m_posC;
 
@@ -51,8 +57,6 @@ class button
     shared_ptr <pathContainer> m_pathContainer;
     shared_ptr <baseTData> m_tData;
     shared_ptr <inputMapper> m_inputMapper;
-
-
 
 };
 

@@ -10,7 +10,7 @@ arcInput::arcInput()
 }
 
 
-void arcInput::start(float s_val){
+void arcInput::setStartVal(float s_val){
 
     m_outVal = s_val;
 

@@ -14,7 +14,7 @@ void vecInput::start(){
 
 }
 
-void vecInput::start(float s_val) {
+void vecInput::setStartVal(float s_val) {
 
     m_bounds[0] = m_posO - (m_direction * m_rangePixels * s_val);
     m_bounds[1] = m_posO + (m_direction * m_rangePixels * (1-s_val));

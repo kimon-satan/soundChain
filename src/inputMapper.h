@@ -11,8 +11,10 @@ class inputMapper
         }
         virtual ~inputMapper() {}
 
-        virtual void start(){};
-        virtual void start(float s_val) = 0;
+        virtual void start(){
+            m_isActive = true;
+        };
+
         virtual void update(ofVec2f t_mouse = ofVec2f(0,0)) = 0;
         virtual void stop() = 0;
 
@@ -20,6 +22,8 @@ class inputMapper
         bool getIsUserInput(){ return m_isUserInput;}
         bool getIsActive(){return m_isActive;}
         float getVal(){ return m_outVal; }
+
+        virtual void setStartVal(float s_val) = 0;
 
     protected:
 

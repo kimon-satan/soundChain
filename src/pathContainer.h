@@ -22,7 +22,7 @@ public:
 
     void draw();
 
-    void start(ofVec2f b_posO);
+    void start(ofVec2f b_posO, float s_val = 0);
     void update(float val);
     void updateO();
 
@@ -38,18 +38,13 @@ public:
 
     float getStartVal();
 
-    //void setBounds(ofVec2f pos, ofVec2f v, float prop);
-    //void setBounds(ofVec2f pos, ofVec2f v, int bufPixels);
-
-    vector<ofVec2f> getBounds();
-
     //still might not need these
     ofRectangle getDims();
     ofPoint getPos();
     float getRot();
 
-    void switchInput();
-
+    void setTransform(shared_ptr <baseTData> b);
+    ofPolyline getPolyA();
 
 private:
 
@@ -60,14 +55,11 @@ private:
 
     ofPoint m_bPosO;
 
-    vector<ofVec2f> m_bounds;
-
     int m_spacing;
     float m_corners;
 
     shared_ptr <baseTData> m_tData;
 
-    int c_input;
 
 };
 

@@ -19,17 +19,17 @@ void holdInput::start(){
 
 }
 
-void holdInput::start(float s_val){
+void holdInput::setStartVal(float s_val){
 
-    m_isActive = true;
     m_outVal = s_val;
 
 }
 
 void holdInput::update(ofVec2f t_mouse){
 
-    float f = ofGetLastFrameTime()/m_time;
+    double f = ofGetLastFrameTime()/m_time;
     m_outVal += m_isAscending ? f : -f;
+
 
     if(m_isPingPong){
         if(m_outVal > 1){
@@ -48,6 +48,7 @@ void holdInput::update(ofVec2f t_mouse){
     }
 
     m_outVal = min(1.0f, max(m_outVal, 0.0f));
+
 
 }
 
