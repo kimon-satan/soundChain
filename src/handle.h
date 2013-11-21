@@ -2,8 +2,26 @@
 #define handle_H
 
 #include "ofxOsc.h"
-#include "vessel.h"
 #include "allInputMappers.h"
+
+class handle;
+
+struct handleJoint{
+
+    shared_ptr <handle> m_handle;
+    string m_type;
+    float m_rot;
+    ofVec2f m_trans;
+
+};
+
+enum handleAction{
+
+    HA_VEC_SPAWN,
+    HA_OTHER
+
+};
+
 
 class handle
 {
@@ -15,14 +33,15 @@ class handle
         void draw();
         void drawSpines();
 
-        shared_ptr<handle> press(ofVec2f t_mouse);
+        shared_ptr<handle> press(ofVec2f t_vec, int ha);
         void drag(ofVec2f t_mouse);
         void release();
-
         void reset();
 
-        void calcIsMoving();
+        void updateJoints();
+        void pivot(float f, ofVec2f p, shared_ptr<handle> actor);
 
+        void calcIsMoving();
         void handleOSC();
         void setOSCSender( ofPtr<ofxOscSender> o);
 
@@ -46,10 +65,11 @@ class handle
         shared_ptr <handle> spawnHandle();
         //spawnHandleFromParent() .. then specifiy input mapper ?
 
+
+
     private:
 
     int m_level;
-    float m_timeAcc;
 
     ofPoint m_posO, m_posC;
     float m_rotC, m_rotO;
@@ -65,8 +85,8 @@ class handle
 
     shared_ptr <inputMapper> m_inputMapper;
 
-    vector <shared_ptr <handle> > m_children; //will also need to be stored in testApp
-    shared_ptr <handle> m_parent, m_hook;
+    vector <handleJoint> m_children; //will also need to be stored in testApp
+    handleJoint m_parent, m_hook;
 
 };
 

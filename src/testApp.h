@@ -2,15 +2,7 @@
 
 #include "ofMain.h"
 #include "handle.h"
-
-struct vesselHandleJoint{
-
-    shared_ptr <handle> m_handle;
-    string m_type;
-    float m_rot;
-    ofVec2f m_trans;
-
-};
+#include "vessel.h"
 
 
 
@@ -20,6 +12,8 @@ class testApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
+
+        void beginAction();
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -35,16 +29,23 @@ class testApp : public ofBaseApp{
 
         void initMoveJoint(shared_ptr <handle> h);
 
-        void modifyhandle(shared_ptr <handle> h);
+        void modifyhandle(shared_ptr <handle> h); //might still use this
 
     private:
 
+        float m_timeAcc;
+
         shared_ptr <handle> m_handle;
         shared_ptr <vessel> m_vessel;
-        ofVec2f m_worldMouse, m_drawMouse;
+
+        ofVec2f m_worldMouse, m_pressPos, m_dragVec;
+        float m_downCount;
+        bool m_isMouseDown, m_isMouseActive;
+        int m_button;
+
         ofPtr<ofxOscSender> m_sender;
 
-        vesselHandleJoint m_moveJoint;
+        handleJoint m_moveJoint;
 
         vector<shared_ptr <handle> >m_allHandles;
 

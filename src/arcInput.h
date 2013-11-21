@@ -19,6 +19,7 @@ class arcInput : public inputMapper
         ofVec2f getPivot();
         void setBoundsDegrees(float neg, float pos);
         float getRotC();
+        float getFrameRot();
 
     private:
 
@@ -26,6 +27,7 @@ class arcInput : public inputMapper
         float m_rotC, m_rangeDegrees;
         float m_boundsDegrees[2], m_props[2];
         bool m_isSmooth;
+        float m_frameRot;
 
 };
 

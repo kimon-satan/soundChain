@@ -21,11 +21,7 @@ handle::handle() {
 
 void handle::update() {
 
-    // lock to prevent too fast frame updates
-    // add interpolation for drawing later
-    m_timeAcc += ofGetLastFrameTime(); //...probably in testApp
-    if(m_timeAcc < 1.0/120.0)return;
-    m_timeAcc = 0;
+
 
     if(m_isActive) {
         if(m_inputMapper) {
@@ -66,6 +62,12 @@ void handle::draw() {
 
     //debug drawing
 
+    ofSetColor(0);
+    ofVec2f v(0,m_radius);
+    v.rotate(m_rotC);
+    ofLine(m_posC, m_posC + v);
+
+
     /*if(m_inputMapper) {
 
         if(m_inputMapper->getType() == "arcInput") {
@@ -97,10 +99,10 @@ void handle::draw() {
 void handle::drawSpines(){
 
     ofSetColor(0);
-    vector <shared_ptr <handle> > :: iterator it = m_children.begin();
+    vector <handleJoint> :: iterator it = m_children.begin();
 
     while(it != m_children.end()) {
-        ofLine(m_posC, (*it)->getPosC()); //could take radius into account later
+        ofLine(m_posC, it->m_handle->getPosC()); //could take radius into account later
         ++it;
     }
 }
@@ -108,20 +110,29 @@ void handle::drawSpines(){
 
 //mouse interaction
 
-shared_ptr<handle> handle::press(ofVec2f t_mouse) {
+shared_ptr<handle> handle::press(ofVec2f t_vec, int ha) {
 
     //mouse coordinates already translated in testApp
     shared_ptr<handle> ptr;
 
     m_isActive = true;
 
-    if(!m_parent && m_children.size() == 0) {
+    if(!m_parent.m_handle && m_children.size() == 0 || ha == HA_VEC_SPAWN) {
+
         ptr = spawnHandle();
         m_inputMapper = shared_ptr<inputMapper>(new vecInput()); //need to think how parameters for this are set
-        reset();
+        shared_ptr<vecInput> t_vi(static_pointer_cast <vecInput>(m_inputMapper));
+
+        if(t_vec.length() > 10){
+            t_vi->setDirGlobal(t_vec.getNormalized());
+        }else{
+            t_vi->setDirGlobal(ofVec2f(0,1));
+        }
+
     }
 
     if(m_inputMapper) {
+        updateJoints();
         reset();
         m_inputMapper->start();
     }
@@ -143,7 +154,16 @@ void handle::drag(ofVec2f t_mouse) {
 
     if(m_inputMapper->getType() == "arcInput") {
         shared_ptr<arcInput> ai(static_pointer_cast<arcInput>(m_inputMapper));
-        m_rotC = m_rotO + ai->getRotC();
+        //m_rotC = m_rotO + ai->getRotC();
+
+
+        if(m_hook.m_handle && m_hook.m_type == "weld"){
+
+            m_hook.m_handle->pivot(ai->getFrameRot(), ai->getPivot(), m_hook.m_handle);
+
+        }
+
+
     }
 
 
@@ -174,13 +194,12 @@ void handle::reset() {
         shared_ptr<arcInput> t_arc(static_pointer_cast <arcInput>(m_inputMapper)); //downcast it
 
         ofVec2f p;
-        p.set(m_hook->getPosC());
+        p.set(m_hook.m_handle->getPosC());
 
         t_arc->setPosO(m_posO);
         t_arc->setBoundsDegrees(-90,90); //could be set in a variety of ways (a data structure will be needed)
         t_arc->setPivot(p);
         t_arc->reset();
-
 
     }
 
@@ -188,13 +207,13 @@ void handle::reset() {
 
         shared_ptr<vecInput> t_vec(static_pointer_cast <vecInput>(m_inputMapper));
         vector<ofVec2f> t_bounds;
-        ofVec2f t_dir(m_posC - m_hook->getPosC());
+        ofVec2f t_dir(m_posC - m_hook.m_handle->getPosC());
 
         if(t_dir.length() > 0) {
             t_vec->setDirGlobal(t_dir.getNormalized());
 
             if(t_dir.length() < 100) { //this can become a parameter later
-                t_bounds.push_back(m_hook->getPosC());
+                t_bounds.push_back(m_hook.m_handle->getPosC());
             } else {
                 t_bounds.push_back(m_posC - t_vec->getDirGlobal() * 100);
             }
@@ -202,7 +221,7 @@ void handle::reset() {
             t_bounds.push_back(m_posC + t_vec->getDirGlobal() * 100);
 
         } else {
-            t_vec->setDirGlobal(ofVec2f(0,1)); //something for this later which locks after intial decision (or use mouse to determine direction)
+
             t_bounds.push_back(m_posC);
             t_bounds.push_back(m_posC + t_vec->getDirGlobal() * 100);
         }
@@ -226,7 +245,60 @@ void handle::reset() {
 }
 
 
+void handle::updateJoints(){
 
+    //is this needed now ?
+
+    if(m_parent.m_handle){
+        m_parent.m_rot = m_rotC - m_parent.m_handle->getRotC();
+        m_parent.m_trans = m_posC - m_parent.m_handle->getPosC();
+    }
+
+    vector <handleJoint>::iterator it = m_children.begin();
+
+    while(it != m_children.end()){
+        it->m_rot = m_rotC - it->m_handle->getRotC();
+        it->m_trans = m_posC - it->m_handle->getPosC();
+        it->m_handle->updateJoints(); //NB recursive call
+        ++it;
+    }
+
+}
+
+void handle::pivot(float f, ofVec2f p, shared_ptr<handle> actor){
+
+    m_rotC += f;
+    if(p != m_posC)m_posC = m_posC.getRotated(f, p, ofVec3f(0,0,1));
+
+    //recursive function call on children
+    vector <handleJoint>::iterator it = m_children.begin();
+
+    while(it != m_children.end()){
+        it->m_handle->pivot(f, p, actor);
+        ++it;
+    }
+
+    //might need to be a call on the parents
+
+}
+
+shared_ptr <handle> handle::spawnHandle() {
+
+    shared_ptr <handle> h = shared_ptr<handle>(new handle());
+    h->setPos(m_posC);
+    h->setRadius(5);
+
+    handleJoint hj;
+    hj.m_handle = h;
+    hj.m_rot = 0;
+    hj.m_trans.set(0,0);
+    hj.m_type = "weld";
+
+    m_children.push_back(hj);
+    m_hook = hj;
+
+    return h;
+}
 
 void handle::calcIsMoving() {
 
@@ -284,7 +356,17 @@ void handle::handleOSC() {
 
 }
 
+void handle::setParent(shared_ptr <handle> t) {
+    m_parent.m_handle = t;
+    m_parent.m_rot = 0;
+    m_parent.m_trans.set(0,0);
+    m_parent.m_type = "weld";
+    m_hook = m_parent;
+}
 
+void handle::setHook(shared_ptr <handle> t) {
+    m_hook.m_handle = t; //more needed here
+}
 
 bool handle::getIsActive(){
     return m_isActive;
@@ -310,16 +392,6 @@ void handle::setInput(shared_ptr <inputMapper> p ) {
     m_inputMapper = p;
 }
 
-shared_ptr <handle> handle::spawnHandle() {
-
-    shared_ptr <handle> h = shared_ptr<handle>(new handle());
-    h->setPos(m_posC);
-    h->setRadius(5);
-    m_hook = h;
-    m_children.push_back(h);
-    return h;
-}
-
 ofVec2f handle::getPosC() {
     return m_posC;
 }
@@ -337,14 +409,7 @@ void handle::setRadius(float r) {
     m_radius = r;
 }
 
-void handle::setParent(shared_ptr <handle> t) {
-    m_parent = t;
-    m_hook = m_parent;
-}
 
-void handle::setHook(shared_ptr <handle> t) {
-    m_hook = t;
-}
 
 void handle::setLevel(int i) {
     m_level = i;

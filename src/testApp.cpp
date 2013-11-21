@@ -75,9 +75,8 @@ void testApp::modifyhandle(shared_ptr <handle> h ) {
 
 void testApp::initMoveJoint(shared_ptr <handle> h) {
 
-    //NEXT !!! setup intial local positions for subsequent transforms
     m_moveJoint.m_handle = h;
-    m_moveJoint.m_type = "pivot";
+    m_moveJoint.m_type = "weld";
     m_moveJoint.m_rot =  m_vessel->getRot() - h->getRotC();
     m_moveJoint.m_trans =  m_vessel->getPos() - h->getPosC();
 
@@ -86,7 +85,24 @@ void testApp::initMoveJoint(shared_ptr <handle> h) {
 //--------------------------------------------------------------
 void testApp::update() {
 
+    //non regulated actions-------------------------------------------------------//
+
     m_worldMouse.set(mouseX - ofGetWidth()/2, -(mouseY - ofGetHeight()/2));
+
+    if(m_isMouseDown && !m_isMouseActive){
+        m_isMouseActive = (ofGetSystemTime()  - m_downCount > 200);
+        if(m_isMouseActive)beginAction();
+    }
+
+    // lock to prevent too fast frame updates
+    // add interpolation for drawing later
+    m_timeAcc += ofGetLastFrameTime(); //...probably in testApp
+    if(m_timeAcc < 1.0/120.0)return;
+    m_timeAcc = 0;
+
+
+    //regulated below here ------------------------------------------------------------//
+
     vector<shared_ptr<handle> >::iterator it = m_allHandles.begin();
 
     while(it != m_allHandles.end()) {
@@ -96,7 +112,7 @@ void testApp::update() {
 
     if(m_moveJoint.m_handle) {
 
-        if(m_moveJoint.m_type == "weld") {
+        if(m_moveJoint.m_type == "weld") { // simpler if it just uses frameRot
 
             m_vessel->setPos( m_moveJoint.m_handle->getPosC() - m_moveJoint.m_trans);
             m_vessel->setRot( m_moveJoint.m_handle->getRotC() - m_moveJoint.m_rot);
@@ -106,6 +122,23 @@ void testApp::update() {
 
             m_vessel->setPos( m_moveJoint.m_handle->getPosC() - m_moveJoint.m_trans);
 
+        }
+    }
+
+
+}
+
+
+void testApp::beginAction(){
+
+    int ha = (m_button == 0) ? HA_OTHER : HA_VEC_SPAWN;
+
+    if(m_handle) {
+        shared_ptr<handle> ptr = m_handle->press(m_dragVec, ha);
+        if(ptr) {
+            m_allHandles.push_back(ptr);
+            ptr->setParent(m_handle);
+            sort(m_allHandles.begin(), m_allHandles.end(), sortByLevel );
         }
     }
 
@@ -198,8 +231,12 @@ void testApp::mouseMoved(int x, int y ) {
 //--------------------------------------------------------------
 void testApp::mouseDragged(int x, int y, int button) {
 
-    if(button == 0) {
-        if(m_handle)m_handle->drag(m_worldMouse);
+    m_dragVec = m_worldMouse - m_pressPos;
+
+    if(m_isMouseActive && m_handle){
+
+        m_handle->drag(m_worldMouse);
+
     }
 
 }
@@ -208,30 +245,24 @@ void testApp::mouseDragged(int x, int y, int button) {
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button) {
 
-    if(button == 0) {
+    m_downCount = ofGetSystemTime();
+    m_button = button;
+    m_isMouseDown = true;
+    m_pressPos.set(m_worldMouse);
 
-        if(m_handle) {
-            shared_ptr<handle> ptr = m_handle->press(m_worldMouse);
-            if(ptr) {
-                m_allHandles.push_back(ptr);
-                ptr->setParent(m_handle);
-                sort(m_allHandles.begin(), m_allHandles.end(), sortByLevel );
-            }
-        }
 
-    }
 
 }
 
 //--------------------------------------------------------------
 void testApp::mouseReleased(int x, int y, int button) {
 
-    if(button == 0) {
-        if(m_handle) {
-            m_handle->release();
-        }
+    m_downCount = 0;
+    m_isMouseDown = false;
+    m_isMouseActive = false;
 
-    }
+    if(m_handle)m_handle->release();
+
 
 }
 

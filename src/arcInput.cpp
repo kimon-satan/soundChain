@@ -13,6 +13,7 @@ arcInput::arcInput()
 void arcInput::reset(){
 
     m_outVal = 0;
+    m_frameRot = 0;
 
     //construct the arc
     ofVec2f v = m_posO - m_pivot;
@@ -49,6 +50,7 @@ void arcInput::update(ofVec2f t_mouse){
 
     }
 
+    m_frameRot = ang - m_rotC;
     m_posC = m_posO.getRotated(ang, m_pivot);
     m_rotC = ang;
 
@@ -63,6 +65,7 @@ void arcInput::stop(){
 
 //extra getters and setters
 
+float arcInput::getFrameRot(){return m_frameRot;}
 void arcInput::setPivot(ofVec2f p){m_pivot.set(p);}
 ofVec2f arcInput::getPivot(){return m_pivot;}
 void arcInput::setBoundsDegrees(float neg, float pos){
