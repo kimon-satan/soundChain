@@ -1,5 +1,12 @@
 #include "testApp.h"
 
+
+//globals
+
+bool sortByLevel(shared_ptr<handle> a, shared_ptr<handle> b){
+    return (a->getLevel() < b->getLevel());
+}
+
 //--------------------------------------------------------------
 void testApp::setup() {
 
@@ -13,92 +20,77 @@ void testApp::setup() {
     m.setAddress("/init");
     m_sender->sendMessage(m);
 
-    m_pathContainer = shared_ptr<pathContainer>(new pathContainer());
-    m_button = shared_ptr<button>(new button(m_pathContainer));
-    m_button->setOSCSender(m_sender);
+    m_vessel = shared_ptr<vessel>(new vessel());
 
+    m_handle = shared_ptr<handle>(new handle());
+    m_handle->setOSCSender(m_sender);
+    m_handle->setLevel(0);
+    m_allHandles.push_back(m_handle);
+    m_moveJoint.m_handle = m_handle;
+    m_moveJoint.m_type = "weld";
+
+    m_handle.reset();
 
     butType = 0;
     pathType = 0;
 
-    modifyPath();
-    modifyButton();
+    //modifyPath();
+    //modifyhandle(m_handle);
 
 
 
 }
 
 
-void testApp::modifyButton() {
+void testApp::modifyhandle(shared_ptr <handle> h ) {
 
     if(butType == 0) {
 
-        shared_ptr<transTData> t_trans = shared_ptr<transTData>(new transTData());
         shared_ptr<inputMapper> t_inputMapper = shared_ptr<inputMapper>(new vecInput());
 
-        t_trans->dirLocal.set(1, 0);
-        t_trans->isLocal = true;
-        t_trans->isBoundsFromPath = true;
-        t_trans->isPixelBuf = true;
-        t_trans->pixelBuf = 25;
-        //t_trans->range = 100;
-        //t_trans->start = 0.5;
-
-        m_button->setInput(t_inputMapper);
-        m_button->setTransform(t_trans);
-
-        m_button->reset();
+        h->setInput(t_inputMapper);
+        h->reset();
 
     }
 
     if(butType == 1) {
 
-        shared_ptr<pivotTData> t_piv = shared_ptr<pivotTData>(new pivotTData());
+
         shared_ptr<inputMapper> t_inputMapper = shared_ptr<inputMapper>(new arcInput());
 
-        t_piv->range = 180;
-        t_piv->start = 0.5;
-        t_piv->pivotLocal.set(ofVec2f(0.0,0.0));  //local position
-        t_piv->isLocal = true;
-
-        m_button->setInput(t_inputMapper);
-        m_button->setTransform(t_piv);
-
-        m_button->reset();
+        h->setInput(t_inputMapper);
+        h->reset();
 
 
     }
 
     if(butType == 2) {
 
-        shared_ptr<baseTData> t_bd;
         shared_ptr<inputMapper> t_inputMapper = shared_ptr<inputMapper>(new holdInput());
-
-        m_button->setInput(t_inputMapper);
-        m_button->setTransform(t_bd);
-        m_button->reset();
+        h->setInput(t_inputMapper);
+        h->reset();
 
     }
 
 }
 
-void testApp::modifyPath() {
+/*void testApp::modifyPath() {
 
-    m_pathContainer->updateO();
+    m_vessel->updateO();
 
     if(pathType == 0){
 
         shared_ptr<transTData> t_trans = shared_ptr<transTData>(new transTData());
         t_trans->dirLocal.set(0,1);
         t_trans->isBoundsFromPath = false;
-        t_trans->isBoundsFromButton = false;
+        t_trans->isBoundsFromhandle = false;
         t_trans->isLocal = true;
         t_trans->isPixelBuf = true;
         t_trans->pixelBuf = 25;
         t_trans->range = 100;
         t_trans->start = 0.5;
 
-        m_pathContainer->setTransform(t_trans);
+        m_vessel->setTransform(t_trans);
 
     }
 
@@ -110,20 +102,43 @@ void testApp::modifyPath() {
         t_piv->start = 0.5;
         t_piv->pivotLocal.set(ofVec2f(-0.35, 0.35));  //local position
 
-        m_pathContainer->setTransform(t_piv);
+        m_vessel->setTransform(t_piv);
     }
 
-    modifyButton();
+   // modifyhandle();
+
+}*/
+
+
+void testApp::initMoveJoint(shared_ptr <handle> h){
+
+    //setup intial local positions for subsequent transforms
 
 }
-
 
 //--------------------------------------------------------------
 void testApp::update() {
 
     m_worldMouse.set(mouseX - ofGetWidth()/2, -(mouseY - ofGetHeight()/2));
-    m_button->update();
-    m_drawMouse = (m_button->getIsSelected()) ? m_button->getModMouse() : m_worldMouse;
+    vector<shared_ptr<handle> >::iterator it = m_allHandles.begin();
+
+    while(it != m_allHandles.end()){
+        (*it)->update();
+        it++;
+    }
+
+    if(m_moveJoint.m_handle){
+
+        if(m_moveJoint.m_type == "weld"){
+            cout << m_moveJoint.m_handle->getPosC() << " :: ";
+            cout << m_moveJoint.m_handle->getRotC() << endl;
+        }
+
+        if(m_moveJoint.m_type == "pivot"){
+
+
+        }
+    }
 
 
 }
@@ -139,10 +154,21 @@ void testApp::draw() {
     ofTranslate(ofGetWidth()/2, ofGetHeight()/2, 0); //camera style coordinates incase used later
     ofScale(1,-1,1);
 
-    m_button->draw();
+    m_vessel->draw();
+    vector<shared_ptr<handle> >::iterator it = m_allHandles.begin();
+
+    while(it != m_allHandles.end()){
+        (*it)->draw();
+        it++;
+    }
 
     //draw mouse pointer
-    m_button->getIsPointInside() ? ofSetColor(255) : ofSetColor(0);
+    if(m_handle){
+        (m_handle->getIsSelected() && m_handle->getIsPointInside(m_worldMouse)) ? ofSetColor(255) : ofSetColor(0);
+    }else{
+        ofSetColor(0);
+    }
+
     ofNoFill();
 
     ofLine(m_worldMouse.x - 10, m_worldMouse.y, m_worldMouse.x + 10, m_worldMouse.y);
@@ -158,13 +184,15 @@ void testApp::keyPressed(int key) {
 
     if(key == 'a') {
         butType = (butType + 1)%3;
-        modifyButton();
+        if(m_handle)modifyhandle(m_handle);
     }
 
     if(key == 's') {
         pathType = (pathType + 1)%2;
         modifyPath();
     }
+
+
 
 
 
@@ -178,12 +206,24 @@ void testApp::keyReleased(int key) {
 //--------------------------------------------------------------
 void testApp::mouseMoved(int x, int y ) {
 
+       m_handle.reset();
+        vector<shared_ptr<handle> >::iterator it = m_allHandles.begin();
+
+        while(it != m_allHandles.end() && !m_handle){
+            if((*it)->getIsPointInside(m_worldMouse)){
+                m_handle = *it;
+            }
+            it++;
+        }
+
 }
 
 //--------------------------------------------------------------
 void testApp::mouseDragged(int x, int y, int button) {
 
-    m_button->drag(m_worldMouse);
+     if(button == 0){
+        if(m_handle)m_handle->drag(m_worldMouse);
+     }
 
 }
 
@@ -191,14 +231,30 @@ void testApp::mouseDragged(int x, int y, int button) {
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button) {
 
-    if(button == 0)m_button->press(m_worldMouse);
+    if(button == 0){
+
+        if(m_handle){
+            shared_ptr<handle> ptr = m_handle->press(m_worldMouse);
+            if(ptr){
+                m_allHandles.push_back(ptr);
+                ptr->setParent(m_handle);
+                sort(m_allHandles.begin(), m_allHandles.end(), sortByLevel );
+            }
+        }
+
+    }
 
 }
 
 //--------------------------------------------------------------
 void testApp::mouseReleased(int x, int y, int button) {
 
-    if(button == 0)m_button->release();
+    if(button == 0){
+        if(m_handle){
+            m_handle->release();
+        }
+
+    }
 
 }
 

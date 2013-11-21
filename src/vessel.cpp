@@ -1,6 +1,6 @@
-#include "pathContainer.h"
+#include "vessel.h"
 
-pathContainer::pathContainer(){
+vessel::vessel(){
 
     m_corners = 0.25;
     m_spacing = 3;
@@ -12,7 +12,7 @@ pathContainer::pathContainer(){
 }
 
 
-void pathContainer::start(ofVec2f b_posO, float s_val){
+void vessel::start(ofVec2f b_posO, float s_val){
 
     m_bPosO.set(b_posO);
 
@@ -66,7 +66,7 @@ void pathContainer::start(ofVec2f b_posO, float s_val){
 
 }
 
-void pathContainer::update(float val){
+void vessel::update(float val){
 
     //determine transform type and downcast
     //perform relevant transform
@@ -84,7 +84,7 @@ void pathContainer::update(float val){
 
 }
 
-void pathContainer::updateO() {
+void vessel::updateO() {
 
     m_polyO = m_polyC; // incase of resize or resample
 
@@ -104,7 +104,7 @@ void pathContainer::updateO() {
 }
 
 
-void pathContainer::resizeC(int width, int height) {
+void vessel::resizeC(int width, int height) {
 
     pathUtils::createRoundedRect(m_polyO,
                                  m_polyO.getCentroid2D(),
@@ -115,20 +115,20 @@ void pathContainer::resizeC(int width, int height) {
 
 }
 
-void pathContainer::rotateFromO(float angle, ofVec2f pivot) {
+void vessel::rotateFromO(float angle, ofVec2f pivot) {
 
     m_rotC = m_rotO + angle;
     m_posC = m_posO.getRotated(angle, pivot, ofVec3f(0,0,1));
 
 }
 
-void pathContainer::translateFromO(ofVec2f v){m_posC = m_posO + v;}
+void vessel::translateFromO(ofVec2f v){m_posC = m_posO + v;}
 
-vector<ofVec2f> pathContainer::getIntersects(ofVec2f uv, ofVec2f p){
+vector<ofVec2f> vessel::getIntersects(ofVec2f uv, ofVec2f p){
     return pathUtils::getIntersects(m_polyA, uv, p);
 }
 
-ofVec2f pathContainer::localToWorldPoint(ofVec2f local){
+ofVec2f vessel::localToWorldPoint(ofVec2f local){
 
     ofVec2f p;
     ofRectangle r = m_polyC.getBoundingBox();
@@ -137,18 +137,18 @@ ofVec2f pathContainer::localToWorldPoint(ofVec2f local){
     return p;
 }
 
-float pathContainer::localToWorldRot(float local){
+float vessel::localToWorldRot(float local){
     float r = local + m_rotC;
     while(r > 180)r -= 360;
     while(r < -180)r += 360;
     return r;
 }
 
-ofVec2f pathContainer::localToWorldVec(ofVec2f local){
+ofVec2f vessel::localToWorldVec(ofVec2f local){
     return local.rotate(m_rotC);
 }
 
-void pathContainer::draw() {
+void vessel::draw() {
 
     ofPushStyle();
     ofSetLineWidth(2);
@@ -177,23 +177,23 @@ void pathContainer::draw() {
 
 }
 
-float pathContainer::getStartVal(){return m_tData->start;}
+float vessel::getStartVal(){return m_tData->start;}
 
-ofRectangle pathContainer::getDims(){
+ofRectangle vessel::getDims(){
     return m_polyO.getBoundingBox();
 }
 
 
-ofPoint pathContainer::getPos(){ return m_posC; }
-float pathContainer::getRot(){ return m_rotC; }
+ofPoint vessel::getPos(){ return m_posC; }
+float vessel::getRot(){ return m_rotC; }
 
 
-void pathContainer::setTransform(shared_ptr <baseTData> b){
+void vessel::setTransform(shared_ptr <baseTData> b){
     m_tData = b;
 }
 
-ofPolyline pathContainer::getPolyA(){return m_polyA;}
+ofPolyline vessel::getPolyA(){return m_polyA;}
 
-pathContainer::~pathContainer() {
+vessel::~vessel() {
     //dtor
 }

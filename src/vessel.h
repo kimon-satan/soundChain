@@ -1,5 +1,5 @@
-#ifndef PATHCONTAINER_H
-#define PATHCONTAINER_H
+#ifndef vessel_H
+#define vessel_H
 
 #include "pathUtils.h"
 #include "utils.h"
@@ -13,12 +13,12 @@ enum trDirection{
 
 };
 
-class pathContainer {
+class vessel {
 
 public:
 
-    pathContainer();
-    virtual ~pathContainer();
+    vessel();
+    virtual ~vessel();
 
     void draw();
 
@@ -63,4 +63,4 @@ private:
 
 };
 
-#endif // PATHCONTAINER_H
+#endif // vessel_H

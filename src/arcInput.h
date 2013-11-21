@@ -11,21 +11,20 @@ class arcInput : public inputMapper
         virtual ~arcInput();
 
 
-        void setStartVal(float s_val);
+        void reset();
         void update(ofVec2f t_mouse);
         void stop();
 
         void setPivot(ofVec2f p);
-        void setPosO(ofVec2f p);
-        void setRangeDegrees(float f);
-
-
+        ofVec2f getPivot();
+        void setBoundsDegrees(float neg, float pos);
+        float getRotC();
 
     private:
 
-        ofVec2f m_pivot, m_posO; // not sure if mouse is needed as member var
-        float m_rangeDegrees;
-        float m_boundsDegrees[2];
+        ofVec2f m_pivot; // not sure if mouse is needed as member var
+        float m_rotC, m_rangeDegrees;
+        float m_boundsDegrees[2], m_props[2];
         bool m_isSmooth;
 
 };

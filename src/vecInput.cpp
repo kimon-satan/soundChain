@@ -4,9 +4,27 @@ vecInput::vecInput() {
     //ctor
     m_type = "vecInput";
     m_isUserInput = true;
+    m_isLocal = true;
+    m_dirLocal.set(1,0);
 
 }
 
+void vecInput::reset(){
+
+    float t_lengths[2];
+
+    for(int i = 0; i < 2; i ++){
+        t_lengths[i] = ofVec2f(m_bounds[i] - m_posO).length();
+    }
+
+    for(int i = 0; i < 2; i ++){
+        m_props[i] = t_lengths[i]/t_lengths[(i+1)%2];
+        m_props[i] = min(m_props[i],1.0f);
+    }
+
+
+
+}
 
 void vecInput::start(){
 
@@ -14,10 +32,10 @@ void vecInput::start(){
 
 }
 
-void vecInput::setStartVal(float s_val) {
+void vecInput::setStartVal(float s_val) { // not quite right sort out in a bit
 
-    m_bounds[0] = m_posO - (m_direction * m_rangePixels * s_val);
-    m_bounds[1] = m_posO + (m_direction * m_rangePixels * (1-s_val));
+    m_bounds[0] = m_posO - (m_dirGlobal * m_rangePixels * s_val);
+    m_bounds[1] = m_posO + (m_dirGlobal * m_rangePixels * (1-s_val));
 
 }
 
@@ -39,7 +57,16 @@ void vecInput::update(ofVec2f t_mouse) {
     p.y = max(p.y, min(m_bounds[0].y, m_bounds[1].y));
     p.y = min(p.y, max(m_bounds[0].y, m_bounds[1].y));
 
-    m_outVal = ofVec2f(p - m_bounds[0]).length()/m_rangePixels;
+    m_posC = p;
+
+    ofVec2f v2 = ofVec2f(p - m_posO).getNormalized();
+
+
+    float ang =  v2.angle(m_dirGlobal.getPerpendicular());
+    int index = (ang > 0) ? 0 : 1;
+    int sign = (index == 0) ? -1 : 1;
+
+    m_outVal = ofVec2f(p - m_posO).length()/ ofVec2f(m_bounds[index] - m_posO).length() * m_props[index] * sign;
 
 }
 
@@ -56,20 +83,37 @@ void vecInput::setBounds(ofVec2f t_min, ofVec2f t_max){
     m_bounds[0].set(t_min);
     m_bounds[1].set(t_max);
     ofVec2f v(t_max - t_min);
-    m_direction.set(v.getNormalized());
+    m_dirGlobal.set(v.getNormalized());
     m_rangePixels = v.length();
 
 }
 
-void vecInput::setDirection(ofVec2f d) {
-    m_direction.set(d);
+ofVec2f vecInput::getBounds(int i){return m_bounds[i];}
+
+void vecInput::setDirGlobal(ofVec2f d) {
+    m_dirGlobal.set(d);
 }
-void vecInput::setPosO(ofVec2f p) {
-    m_posO.set(p);
+
+void vecInput::setDirLocal(ofVec2f d) {
+    m_dirLocal.set(d);
 }
+
+ofVec2f vecInput::getDirLocal(){
+    return m_dirLocal;
+}
+
+ofVec2f vecInput::getDirGlobal(){
+    return m_dirGlobal;
+}
+
+
 void vecInput::setRangePixels(float f) {
     m_rangePixels = f;
 }
+
+
+void vecInput::setIsLocal(bool b){ m_isLocal = b; }
+bool vecInput::getIsLocal(){return m_isLocal; }
 
 vecInput::~vecInput() {
     //dtor
