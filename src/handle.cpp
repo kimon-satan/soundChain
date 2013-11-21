@@ -3,8 +3,9 @@
 handle::handle() {
 
     //ctor
+    m_isActive = false;
     m_isSelected = false;
-    m_isPointInside = false;
+
     m_radius = 15;
     m_posO.set(0,0,0);
     m_posC.set(m_posO);
@@ -26,7 +27,7 @@ void handle::update() {
     if(m_timeAcc < 1.0/120.0)return;
     m_timeAcc = 0;
 
-    if(m_isSelected) {
+    if(m_isActive) {
         if(m_inputMapper) {
             if(!m_inputMapper->getIsUserInput() && m_inputMapper->getIsActive())m_inputMapper->update();
         }
@@ -43,18 +44,25 @@ void handle::update() {
 void handle::draw() {
 
     ofPushStyle();
-    ofSetColor(0);
-    (m_isSelected)? ofFill(): ofNoFill();
+
+    ofFill();
+
+    if(m_isActive) {
+        ofSetColor(0);
+    } else if(m_isSelected) {
+        ofSetColor(255,100,100);
+    } else {
+        ofSetColor(255);
+    }
+
     ofCircle(m_posC, m_radius);
+    ofNoFill();
+
+    ofSetColor(0);
+    ofCircle(m_posC, m_radius);
+
     ofPopStyle();
 
-    ofSetColor(0);
-    vector <shared_ptr <handle> > :: iterator it = m_children.begin();
-
-    while(it != m_children.end()) {
-        ofLine(m_posC, (*it)->getPosC()); //could take radius into account later
-        ++it;
-    }
 
     //debug drawing
 
@@ -83,11 +91,19 @@ void handle::draw() {
 
     }*/
 
-
-
-
 }
 
+
+void handle::drawSpines(){
+
+    ofSetColor(0);
+    vector <shared_ptr <handle> > :: iterator it = m_children.begin();
+
+    while(it != m_children.end()) {
+        ofLine(m_posC, (*it)->getPosC()); //could take radius into account later
+        ++it;
+    }
+}
 
 
 //mouse interaction
@@ -97,22 +113,19 @@ shared_ptr<handle> handle::press(ofVec2f t_mouse) {
     //mouse coordinates already translated in testApp
     shared_ptr<handle> ptr;
 
-    m_isSelected = m_isPointInside;
+    m_isActive = true;
 
-    if(m_isSelected) {
-
-        if(!m_parent && m_children.size() == 0) {
-            ptr = spawnHandle();
-            m_inputMapper = shared_ptr<inputMapper>(new vecInput()); //need to think how parameters for this are set
-            reset();
-        }
-
-        if(m_inputMapper) {
-            reset();
-            m_inputMapper->start();
-        }
-
+    if(!m_parent && m_children.size() == 0) {
+        ptr = spawnHandle();
+        m_inputMapper = shared_ptr<inputMapper>(new vecInput()); //need to think how parameters for this are set
+        reset();
     }
+
+    if(m_inputMapper) {
+        reset();
+        m_inputMapper->start();
+    }
+
 
     return ptr;
 
@@ -120,10 +133,7 @@ shared_ptr<handle> handle::press(ofVec2f t_mouse) {
 
 void handle::drag(ofVec2f t_mouse) {
 
-
-    m_isPointInside = t_mouse.distance(m_posC) <= m_radius;
-
-    if(!m_isSelected || !m_inputMapper)return;
+    if(!m_isActive || !m_inputMapper)return;
 
 
     if(m_inputMapper->getIsUserInput()) {
@@ -142,8 +152,7 @@ void handle::drag(ofVec2f t_mouse) {
 
 void handle::release() {
 
-    m_isSelected = false;
-    m_isPointInside = false;
+    m_isActive = false;
 
     // deactivate input mapper
     if(m_inputMapper)m_inputMapper->stop();
@@ -185,7 +194,7 @@ void handle::reset() {
             t_vec->setDirGlobal(t_dir.getNormalized());
 
             if(t_dir.length() < 100) { //this can become a parameter later
-                t_bounds.push_back(m_posC);
+                t_bounds.push_back(m_hook->getPosC());
             } else {
                 t_bounds.push_back(m_posC - t_vec->getDirGlobal() * 100);
             }
@@ -194,7 +203,7 @@ void handle::reset() {
 
         } else {
             t_vec->setDirGlobal(ofVec2f(0,1)); //something for this later which locks after intial decision (or use mouse to determine direction)
-            t_bounds.push_back(m_posC );
+            t_bounds.push_back(m_posC);
             t_bounds.push_back(m_posC + t_vec->getDirGlobal() * 100);
         }
 
@@ -256,11 +265,11 @@ void handle::handleOSC() {
 
      }else{
 
-         if(m_isSelected && ! m_isSoundOn) {
+         if(m_isActive && ! m_isSoundOn) {
              m.setAddress("/startS");
              p_sender->sendMessage(m);
              m_isSoundOn = true;
-         } else if(!m_isSelected && m_isSoundOn) {
+         } else if(!m_isActive && m_isSoundOn) {
              m.setAddress("/stopS");
              p_sender->sendMessage(m);
              m_isSoundOn = false;
@@ -277,13 +286,20 @@ void handle::handleOSC() {
 
 
 
+bool handle::getIsActive(){
+    return m_isActive;
+}
+
+void handle::setIsSelected(bool b) {
+    m_isSelected = b;
+}
+
 bool handle::getIsSelected() {
     return m_isSelected;
 }
 
 bool handle::getIsPointInside(ofVec2f t_mouse) {
-    m_isPointInside = t_mouse.distance(m_posC) <= m_radius;
-    return m_isPointInside;
+    return t_mouse.distance(m_posC) <= m_radius;
 }
 
 void handle::setOSCSender( ofPtr<ofxOscSender> o) {
@@ -308,7 +324,7 @@ ofVec2f handle::getPosC() {
     return m_posC;
 }
 
-float handle::getRotC(){
+float handle::getRotC() {
     return m_rotC;
 }
 
@@ -325,6 +341,7 @@ void handle::setParent(shared_ptr <handle> t) {
     m_parent = t;
     m_hook = m_parent;
 }
+
 void handle::setHook(shared_ptr <handle> t) {
     m_hook = t;
 }

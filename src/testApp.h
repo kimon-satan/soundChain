@@ -7,6 +7,8 @@ struct vesselHandleJoint{
 
     shared_ptr <handle> m_handle;
     string m_type;
+    float m_rot;
+    ofVec2f m_trans;
 
 };
 
@@ -34,7 +36,6 @@ class testApp : public ofBaseApp{
         void initMoveJoint(shared_ptr <handle> h);
 
         void modifyhandle(shared_ptr <handle> h);
-        //void modifyPath();
 
     private:
 

@@ -22,43 +22,30 @@ public:
 
     void draw();
 
-    void start(ofVec2f b_posO, float s_val = 0);
     void update(float val);
     void updateO();
-
-    void resizeC(int width, int height); //needs updating
-
-    void rotateFromO(float angle, ofVec2f pivot);
-    void translateFromO(ofVec2f b_pos);
-    vector<ofVec2f> getIntersects(ofVec2f uv, ofVec2f p);
 
     ofVec2f localToWorldPoint(ofVec2f local);
     float localToWorldRot(float local);
     ofVec2f localToWorldVec(ofVec2f local);
 
-    float getStartVal();
-
-    //still might not need these
     ofRectangle getDims();
     ofPoint getPos();
+    void setPos(ofPoint p);
     float getRot();
+    void setRot(float f);
 
-    void setTransform(shared_ptr <baseTData> b);
     ofPolyline getPolyA();
 
 private:
 
-    ofPolyline m_polyO, m_polyC, m_polyA; //O = stored b4 transform, C = current, A = with actual coorinates (updated with O)
+    ofPolyline m_polyO, m_polyC, m_polyA; // C = current, A = with actual coorinates (updated with O)
 
-    float m_rotC, m_rotO;
-    ofPoint m_posC, m_posO;
-
-    ofPoint m_bPosO;
+    float m_rotC;
+    ofPoint m_posC;
 
     int m_spacing;
     float m_corners;
-
-    shared_ptr <baseTData> m_tData;
 
 
 };

@@ -13,6 +13,7 @@ class handle
 
         void update();
         void draw();
+        void drawSpines();
 
         shared_ptr<handle> press(ofVec2f t_mouse);
         void drag(ofVec2f t_mouse);
@@ -25,11 +26,12 @@ class handle
         void handleOSC();
         void setOSCSender( ofPtr<ofxOscSender> o);
 
+        void setIsSelected(bool b);
         bool getIsSelected();
+        bool getIsActive();
         bool getIsPointInside(ofVec2f p);
 
         void setInput(shared_ptr <inputMapper> p);
-
 
         ofVec2f getPosC();
         float getRotC();
@@ -53,7 +55,7 @@ class handle
     float m_rotC, m_rotO;
 
     float m_radius;
-    bool m_isSelected, m_isMoving, m_isSoundOn, m_isPointInside;
+    bool m_isSelected, m_isActive, m_isMoving, m_isSoundOn;
 
     int m_histSize;
 
