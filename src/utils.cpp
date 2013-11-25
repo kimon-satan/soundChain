@@ -17,5 +17,17 @@ float valToRot(float val, float rng, float i_rot) {
     return(val - i_rot) * rng;
 }
 
+void genRandom(string & s, const int len) {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+
+    for (int i = 0; i < len; ++i) {
+        s += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+}
+
 
 }

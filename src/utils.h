@@ -8,6 +8,8 @@ namespace utils
 
     ofVec2f valToVec(float val, vector<ofVec2f> bnds, ofVec2f i_pos);
     float valToRot(float val, float rng, float i_rot);
+    void genRandom(string & s, const int len);
+
 };
 
 #endif // UTILS_H

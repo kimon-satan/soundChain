@@ -3,6 +3,7 @@
 
 #include "ofxOsc.h"
 #include "allInputMappers.h"
+#include "utils.h"
 
 class handle;
 
@@ -38,8 +39,7 @@ class handle
         void release();
         void reset();
 
-        void updateJoints();
-        void pivot(float f, ofVec2f p, shared_ptr<handle> actor);
+        void pivot(float f, ofVec2f p, ofVec2f t, string jType, string actor);
 
         void calcIsMoving();
         void handleOSC();
@@ -62,17 +62,26 @@ class handle
         void setLevel(int i);
         int getLevel();
 
+        string getIndex();
+        string getInputType();
+
         shared_ptr <handle> spawnHandle();
         //spawnHandleFromParent() .. then specifiy input mapper ?
 
+        handleJoint getChildJoint(string index);
+        void setChildJoint(string index, string jt);
+
+        string getJointType();
+        void setJointType( string jt);
 
 
     private:
 
     int m_level;
+    string m_index;
 
-    ofPoint m_posO, m_posC;
-    float m_rotC, m_rotO;
+    ofPoint m_posC;
+    float m_rotC;
 
     float m_radius;
     bool m_isSelected, m_isActive, m_isMoving, m_isSoundOn;
@@ -86,7 +95,7 @@ class handle
     shared_ptr <inputMapper> m_inputMapper;
 
     vector <handleJoint> m_children; //will also need to be stored in testApp
-    handleJoint m_parent, m_hook;
+    shared_ptr <handle> m_parent, m_hook;
 
 };
 

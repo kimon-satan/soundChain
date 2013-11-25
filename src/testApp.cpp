@@ -32,8 +32,6 @@ void testApp::setup() {
 
     butType = 0;
 
-    //modifyhandle(m_handle);
-
 
 
 }
@@ -41,36 +39,41 @@ void testApp::setup() {
 
 void testApp::modifyhandle(shared_ptr <handle> h ) {
 
-    if(butType == 0) {
+    if(h->getInputType() == "arcInput") {
 
         shared_ptr<inputMapper> t_inputMapper = shared_ptr<inputMapper>(new vecInput());
-
         h->setInput(t_inputMapper);
         h->reset();
 
-    }
-
-    if(butType == 1) {
-
+    }else{
 
         shared_ptr<inputMapper> t_inputMapper = shared_ptr<inputMapper>(new arcInput());
-
         h->setInput(t_inputMapper);
         h->reset();
 
-
     }
 
-    if(butType == 2) {
+    /*if(butType == 2) {
 
         shared_ptr<inputMapper> t_inputMapper = shared_ptr<inputMapper>(new holdInput());
         h->setInput(t_inputMapper);
         h->reset();
 
-    }
+    }*/
 
 }
 
+void testApp::modifyJoint(shared_ptr <handle> h){
+
+
+
+   if(h->getJointType() == "pivot"){
+        h->setJointType("weld");
+    }else if(h->getJointType() == "weld"){
+        h->setJointType("pivot");
+    }
+
+}
 
 
 void testApp::initMoveJoint(shared_ptr <handle> h) {
@@ -138,6 +141,7 @@ void testApp::beginAction(){
         if(ptr) {
             m_allHandles.push_back(ptr);
             ptr->setParent(m_handle);
+            ptr->setHook(m_handle);
             sort(m_allHandles.begin(), m_allHandles.end(), sortByLevel );
         }
     }
@@ -192,8 +196,11 @@ void testApp::draw() {
 void testApp::keyPressed(int key) {
 
     if(key == 'a') {
-        butType = (butType + 1)%2;
         if(m_handle)modifyhandle(m_handle);
+    }
+
+    if(key == 's'){
+        if(m_handle)modifyJoint(m_handle);
     }
 
 

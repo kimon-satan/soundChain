@@ -30,6 +30,7 @@ class testApp : public ofBaseApp{
         void initMoveJoint(shared_ptr <handle> h);
 
         void modifyhandle(shared_ptr <handle> h); //might still use this
+        void modifyJoint(shared_ptr <handle> h);
 
     private:
 
